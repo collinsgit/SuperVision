@@ -55,10 +55,13 @@ class ImageNetLoader(object):
 		all_urls = urls.splitlines()
 		shuffle(all_urls)
 		n = min(len(all_urls), limit)
-		image_urls = all_urls[:limit]
+		image_urls = all_urls
 		url_lookup = {}
+		num_saved = 0
 		files_written = []
 		for i in range(len(image_urls)):
+			if num_saved >= limit:
+				break
 			u = image_urls[i].strip()
 			file_ending = urllib.parse.urlparse(u).path.split('.')[-1].strip()
 			fp = path_for(cache_dir, wnid, "%d.%s" % (i,file_ending))
@@ -71,6 +74,7 @@ class ImageNetLoader(object):
 					valid_image = True
 					with open(fp,'wb') as output_file:
 						output_file.write(downloaded_im)
+					num_saved += 1
 			except Exception as err:
 				#print(err)
 				pass
