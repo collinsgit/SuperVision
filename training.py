@@ -8,7 +8,7 @@ Trains the neural network
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Input, Dense, Reshape, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Input, Dense, Reshape, Dropout, Flatten, Conv2D
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.utils import to_categorical
