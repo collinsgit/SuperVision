@@ -8,7 +8,7 @@ Trains the neural network
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Input, Dense, Reshape, Dropout, Flatten, Conv2D, MaxPooling2D, Conv2DTranspose
+from tensorflow.keras.layers import Input, Dense, Reshape, Dropout, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.utils import to_categorical
@@ -155,6 +155,8 @@ class SynSet(object):
 			child_synsets = [(i,my_wnid) for i in parent_soup.find_all('synset',recursive=False)]
 			q.extend(child_synsets)
 		return SynSet.lookup
+
+
 class PlotLosses(Callback):
 	def on_train_begin(self, logs={}):
 		self.losses = []
@@ -180,50 +182,56 @@ def debug():
 	loader.clear_cache()
 	loader.cache_synsets_of_depth(5,10,20)
 
+
 def main():
 	image_size = (16, 16, 3)
 	activation = 'relu'
-	intermediate_shape = (128, 128, 3)
+	final_shape = (128, 128, 3)
+	num_classes = 10
 
 	image_input = Input(shape=image_size)
 	label_input = Input(shape=(num_classes,))
 
 	x = Conv2D(32, 3, activation=activation)(image_input)
-	x = MaxPooling2D(2, 2)(x)
 
 	x = Conv2D(64, 3, activation=activation)(x)
-	x = MaxPooling2D(2, 2)(x)
 
 	x = Conv2D(128, 3, activation=activation)(x)
-	x = MaxPooling2D(2, 2)(x)
 
 	x = Dropout(0.4)(x)
 
 	x = Flatten()(x)
-	x = Dense(128*128*3*2, activation=activation)(
+	x = Dense(64*64*3, activation=activation)(
 		concatenate([x, label_input]))
 
-	x = Dense(128*128*3, activation=activation)(
+	x = Dense(np.prod(final_shape), activation=activation)(
 		concatenate([x, Flatten()(image_input)]))
 
-	x = Dense(np.prod(intermediate_shape), activation=activation)(x)
-	x = Reshape(intermediate_shape)(x)
+	x = Reshape(final_shape)(x)
 
 	output = x
 				
-	model = Model(inputs=[image_input, label_input], outputs=output)
+	model = keras.models.Model(inputs=[image_input, label_input], outputs=output)
 
 	print(model.summary())
 				
 	adam = Adam(lr=1e-4)
-	model.compile(loss='...',
+
+	plot_losses = PlotLosses()
+
+	model.compile(loss=keras.losses.mean_squared_error,
 				optimizer=adam,
 				metrics=['accuracy'])
 
+	train_images = []
+	train_labels = []
+	train_original_images = []
+	val_images = []
+	val_labels = []
+
 	history = model.fit([train_images, train_labels], train_original_images,
-						sample_weight=sample_weights,
 						validation_data=(val_images, val_labels),
-						batch_size=50,
+						batch_size=10,
 						epochs=200,
 						callbacks=[plot_losses])
 
@@ -231,4 +239,5 @@ def main():
 	print(max_val_acc)
 
 
-debug()
+if __name__ == '__main__':
+	main()
