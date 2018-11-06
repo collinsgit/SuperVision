@@ -68,13 +68,17 @@ class ImageNetLoader(object):
 			fp = fp.strip()
 			valid_image = False
 			try:
-				downloaded_im = requests.get(u).content
-				if imghdr.what('',h=downloaded_im) is not None:
-					# valid image
-					valid_image = True
-					with open(fp,'wb') as output_file:
-						output_file.write(downloaded_im)
-					num_saved += 1
+				resp = requests.get(u)
+				if resp.url.lower() == u.lower():
+					downloaded_im = resp.content
+					if imghdr.what('',h=downloaded_im) is not None:
+						# valid image
+						valid_image = True
+						with open(fp,'wb') as output_file:
+							output_file.write(downloaded_im)
+						num_saved += 1
+				else:
+					print("Expected",u,"Got",resp.url)
 			except Exception as err:
 				#print(err)
 				pass
@@ -254,4 +258,4 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	debug()
