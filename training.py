@@ -43,7 +43,7 @@ class ImageNetLoader(object):
 		return requests.get("/".join(args),params=params).text
 	
 	def cache_synsets_of_depth(self,depth, number_per_synset, num_synsets):
-		return self.cache_images(SynSet.generate_synset_ids_of_depth(depth)[:num_synsets], number_per_synset)
+		return self.cache_images(SynSet.generate_synset_ids_of_depth(depth,num_synsets), number_per_synset)
 	def cache_images(self,synset_ids, number_of_images_each):
 		return {i: self.cache_synset(i, number_of_images_each)[1] for i in synset_ids}
 	def cache_synset(self, wnid, limit=100):
@@ -57,9 +57,9 @@ class ImageNetLoader(object):
 		files_written = []
 		for i in range(len(image_urls)):
 			u = image_urls[i]
-			file_ending = urllib.parse.urlparse(u).path.split('.')[-1]
+			file_ending = urllib.parse.urlparse(u).path.split('.')[-1].strip()
 			fp = path_for(cache_dir, wnid, "%d.%s" % (i,file_ending))
-			with open(fp.strip(),'wb') as output_file:
+			with open(fp,'wb') as output_file:
 				try:
 					output_file.write(requests.get(u).content)
 				except:
