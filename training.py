@@ -13,6 +13,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.layers import concatenate
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from sklearn.utils.class_weight import compute_class_weight
 import matplotlib.pyplot as plt
 import requests
@@ -23,6 +24,8 @@ from bs4 import BeautifulSoup as Soup
 import shutil
 from random import shuffle
 import urllib.parse
+from PIL import Image
+import imghdr
 
 file_dir = os.path.abspath(os.path.split(__file__)[0])
 data_dir = "data"
@@ -49,25 +52,37 @@ class ImageNetLoader(object):
 	def cache_synset(self, wnid, limit=100):
 		print("Caching %d from synset id %s (%s)" % (limit, wnid, SynSet.get(wnid).word_hierarchy()))
 		urls = self.get_resource('text','imagenet.synset.geturls', wnid=[wnid])
-		all_urls = urls.split('\n')
+		all_urls = urls.splitlines()
 		shuffle(all_urls)
 		n = min(len(all_urls), limit)
-		image_urls = all_urls[:limit]
+		image_urls = all_urls
 		url_lookup = {}
+		num_saved = 0
 		files_written = []
 		for i in range(len(image_urls)):
-			u = image_urls[i]
+			if num_saved >= limit:
+				break
+			u = image_urls[i].strip()
 			file_ending = urllib.parse.urlparse(u).path.split('.')[-1].strip()
 			fp = path_for(cache_dir, wnid, "%d.%s" % (i,file_ending))
-			with open(fp,'wb') as output_file:
-				try:
-					output_file.write(requests.get(u).content)
-				except:
-					pass
-			files_written.append(fp)
-			url_lookup[fp] = u
+			fp = fp.strip()
+			valid_image = False
+			try:
+				downloaded_im = requests.get(u).content
+				if imghdr.what('',h=downloaded_im) is not None:
+					# valid image
+					valid_image = True
+					with open(fp,'wb') as output_file:
+						output_file.write(downloaded_im)
+					num_saved += 1
+			except Exception as err:
+				#print(err)
+				pass
+			if valid_image:
+				files_written.append(fp)
+				url_lookup[fp] = u
 		with open(path_for(cache_dir,wnid,'credit.txt'),'w') as credit_file:
-			json.dump({"wnid":wnid,"words":SynSet.get(wnid).word_hierarchy(),"urls":url_lookup},credit_file)
+			json.dump({"wnid":wnid,"words":SynSet.get(wnid).word_hierarchy(),"urls":url_lookup},credit_file,indent=2)
 		return wnid, files_written
 			
 		
@@ -133,7 +148,7 @@ class SynSet(object):
 
 	def populate_structure():
 		SynSet.clear_lookup()
-		valid_synsets = set(requests.get('http://www.image-net.org/api/text/imagenet.synset.obtain_synset_list').text.split('\n'))
+		valid_synsets = set(requests.get('http://www.image-net.org/api/text/imagenet.synset.obtain_synset_list').text.splitlines())
 		structure_file_contents = None
 		with open(path_for(data_dir,"structure.xml"), "r") as f:
 			structure_file_contents = f.read()
@@ -181,7 +196,6 @@ def debug():
 	structure = SynSet.populate_structure()
 	loader.clear_cache()
 	loader.cache_synsets_of_depth(5,10,20)
-
 
 def main():
 	image_size = (16, 16, 3)
