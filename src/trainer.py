@@ -88,10 +88,10 @@ class Trainer():
                 # Julie: Added extra _
                 for lr, hr, filename, average_classification, _ in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
-                    if self.args.use_classification:
-                        sr = self.model(lr, idx_scale, average_classification)
-                    else:
-                        sr = self.model(lr, idx_scale)
+                    #if self.args.use_classification:
+                    sr = self.model(lr, idx_scale, average_classification)
+                    #else:
+                    #    sr = self.model(lr, idx_scale)
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]
