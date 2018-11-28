@@ -1,6 +1,8 @@
 from model import common
 
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 url = {
     'r16f64x2': 'https://cv.snu.ac.kr/research/EDSR/models/edsr_baseline_x2-1bc95232.pt',
@@ -46,6 +48,7 @@ class CEDSR(nn.Module):
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
+        self.integrate = nn.Conv2d(n_feats + 128, n_feats, 3, padding=1)
         self.tail = nn.Sequential(*m_tail)
 
     def forward(self, x, avg_classification):
@@ -55,7 +58,11 @@ class CEDSR(nn.Module):
         res = self.body(x)
         res += x
 
-        x = self.tail(res)
+        avg = F.interpolate(avg_classification, x.size()[2:], mode='bilinear')
+        x = torch.cat((avg, res), dim=1)
+        x = self.integrate(x)
+
+        x = self.tail(x)
         x = self.add_mean(x)
 
         return x 

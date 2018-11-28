@@ -8,7 +8,7 @@ import torchvision.models as models
 class VGG(nn.Module):
     def __init__(self):
         rgb_range=1
-        conv_index='54'
+        conv_index='22'
         super(VGG, self).__init__()
         vgg_features = models.vgg19(pretrained=True).features
         modules = [m for m in vgg_features]
@@ -22,11 +22,7 @@ class VGG(nn.Module):
         self.sub_mean = common.MeanShift(rgb_range, vgg_mean, vgg_std)
         self.vgg.requires_grad = False
 
-    def forward(self, sr, hr):
-        def _forward(x):
-            x = self.sub_mean(x)
-            x = self.vgg(x)
-            return x
-            
-        vgg_sr = _forward(sr)
-        return vgg_sr
+    def forward(self, x):
+        x = self.sub_mean(x)
+        x = self.vgg(x)
+        return x

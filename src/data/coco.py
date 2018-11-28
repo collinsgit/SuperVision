@@ -1,6 +1,7 @@
 import os
 import json
 from data import srdata
+import torch
 
 CATEGORIES_FILE = 'annotations/instances_val2017.json'
 
@@ -34,7 +35,7 @@ class Coco(srdata.SRData):
 
     def __getitem__(self, idx):
         lr, hr, fname, _ = super().__getitem__(idx)
-        return lr, hr, fname, -1
+        return lr, hr, fname, torch.ones((128, 150, 150))
 
 
 class CocoClasses(object):
