@@ -1,3 +1,4 @@
 *
+!coco/avg_embeddings/*
 !.gitignore
 !PUT_DATA_IN_HERE.txt
