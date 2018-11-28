@@ -1,3 +1,5 @@
 cached_data/*
 models/*
 **/__pycache__/**
+.idea
+.vscode
