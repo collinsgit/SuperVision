@@ -9,7 +9,7 @@ class Model(nn.Module):
     def __init__(self, args, ckp):
         super(Model, self).__init__()
         print('Making model...')
-
+        self.args = args
         self.scale = args.scale
         self.idx_scale = 0
         self.input_large = (args.model == 'VDSR')
@@ -36,21 +36,28 @@ class Model(nn.Module):
         )
         print(self.model, file=ckp.log_file)
 
-    def forward(self, x, idx_scale):
+    def forward(self, x, idx_scale, avg_classification):
         self.idx_scale = idx_scale
         target = self.get_model()
         if hasattr(target, 'set_scale'): target.set_scale(idx_scale)
-        if self.self_ensemble and not self.training:
-            if self.chop:
-                forward_function = self.forward_chop
+        if self.args.use_classification:
+            if self.self_ensemble and not self.training:
+                raise Exception("NOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+                return self.forward_x8(x, forward_function=self.model.forward)
             else:
-                forward_function = self.model.forward
-
-            return self.forward_x8(x, forward_function=forward_function)
-        elif self.chop and not self.training:
-            return self.forward_chop(x)
+                return self.model(x, avg_classification)
         else:
-            return self.model(x)
+            if self.self_ensemble and not self.training:
+                if self.chop:
+                    forward_function = self.forward_chop
+                else:
+                    forward_function = self.model.forward
+
+                return self.forward_x8(x, forward_function=forward_function)
+            elif self.chop and not self.training:
+                return self.forward_chop(x)
+            else:
+                return self.model(x)
 
     def get_model(self):
         if self.n_GPUs == 1:

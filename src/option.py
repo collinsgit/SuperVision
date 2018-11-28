@@ -44,7 +44,10 @@ parser.add_argument('--chop', action='store_true',
                     help='enable memory-efficient forward')
 parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
-
+#Julie changed this
+parser.add_argument('--use_classification', action='store_true', default=False,
+                    help='whether or not to pass the model the classification of the input image, as an average VGG output')
+                    
 # Model specifications
 parser.add_argument('--model', default='EDSR',
                     help='model name')

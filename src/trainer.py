@@ -39,7 +39,7 @@ class Trainer():
 
         timer_data, timer_model = utility.timer(), utility.timer()
         # Julie: Added extra _
-        for batch, (lr, hr, _, _, idx_scale) in enumerate(self.loader_train):
+        for batch, (lr, hr, fname, average_classification, idx_scale) in enumerate(self.loader_train):
             lr, hr = self.prepare(lr, hr)
             timer_data.hold()
             timer_model.tic()
@@ -86,9 +86,12 @@ class Trainer():
             for idx_scale, scale in enumerate(self.scale):
                 d.dataset.set_scale(idx_scale)
                 # Julie: Added extra _
-                for lr, hr, filename, _, _ in tqdm(d, ncols=80):
+                for lr, hr, filename, average_classification, _ in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
-                    sr = self.model(lr, idx_scale)
+                    if self.args.use_classification:
+                        sr = self.model(lr, idx_scale, average_classification)
+                    else:
+                        sr = self.model(lr, idx_scale)
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]
