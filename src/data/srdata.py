@@ -148,7 +148,7 @@ class SRData(data.Dataset):
         pair = common.set_channel(*pair, n_channels=self.args.n_colors)
         pair_t = common.np2Tensor(*pair, rgb_range=self.args.rgb_range)
 
-        return pair_t[0], pair_t[1], filename
+        return pair_t[0], pair_t[1], filename, None
 
     def __len__(self):
         if self.train:
