@@ -23,16 +23,10 @@ class CategoryDataSet(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.files)
 
-def get_files_by_category(category_id):
-    return [
-        '..\\datasets\\coco\\hr\\000000000139.jpg',
-        '..\\datasets\\coco\\hr\\000000000285.jpg',
-        '..\\datasets\\coco\\hr\\000000000632.jpg'
-            ]
 
 def get_cat_map():
     classes = CocoClasses('../datasets', 'annotations/instances_val2017.json')
-    files = os.listdir('../datasets/hr')
+    files = os.listdir('../datasets/coco/hr')
 
     cat_map = {}
     for file in files:
@@ -44,6 +38,12 @@ def get_cat_map():
 
     return cat_map
 
+
+catmap = get_cat_map()
+def get_files_by_category(category_id):
+    return catmap[category_id]
+def get_categories():
+    return sorted(list(catmap.keys()))
 
 batch_size = 16
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -68,7 +68,9 @@ def compute_average_for_category(category_id):
     torch.save(total_results, os.path.join(output_dir, "%02d" % category_id))
 
 
-
+for category in get_categories():
+    compute_average_for_category(category)
+    print("Done",category)
 
 '''
 os.makedirs(output_dir,exist_ok=True)
