@@ -1,3 +1,12 @@
+file_dir = os.path.abspath(os.path.split(__file__)[0])
+cache_dir = "cached_data"
+
+def path_for(*p):
+	full_path = os.path.join(file_dir, *p)
+	full_path_dir = os.path.split(full_path)[0]
+	os.makedirs(full_path_dir, exist_ok=True)
+	return full_path
+
 class ImageNetDownloader(object):
 	api_base = "http://www.image-net.org/api/"
 
@@ -118,7 +127,7 @@ class SynSet(object):
 		SynSet.clear_lookup()
 		valid_synsets = set(requests.get('http://www.image-net.org/api/text/imagenet.synset.obtain_synset_list').text.splitlines())
 		structure_file_contents = None
-		with open(path_for(data_dir,"structure.xml"), "r") as f:
+		with open(path_for("structure.xml"), "r") as f:
 			structure_file_contents = f.read()
 		soup = Soup(structure_file_contents,'lxml').imagenetstructure
 		q = collections.deque()

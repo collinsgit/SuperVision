@@ -29,7 +29,8 @@ parser.add_argument('--data_test', type=str, default='DIV2K',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-800/801-810',
                     help='train/test data range')
-parser.add_argument('--ext', type=str, default='sep',
+# CHANGED: Julie changed this, blame Eric if this goes wrong
+parser.add_argument('--ext', type=str, default='img',
                     help='dataset file extension')
 parser.add_argument('--scale', type=str, default='4',
                     help='super resolution scale')
