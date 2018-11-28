@@ -49,7 +49,7 @@ parser.add_argument('--use_classification', action='store_true', default=False,
                     help='whether or not to pass the model the classification of the input image, as an average VGG output')
                     
 # Model specifications
-parser.add_argument('--model', default='EDSR',
+parser.add_argument('--model', default='CEDSR',
                     help='model name')
 
 parser.add_argument('--act', type=str, default='relu',
