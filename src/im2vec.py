@@ -71,7 +71,8 @@ def compute_average_for_category(category_id):
         i += 1
         print("Category: %2d, Batch number %4d/%4d" % (category_id, i, num_batches))
     total_results *= 1.0 / len(loader)
-    torch.save(total_results, os.path.join(output_dir, "%02d" % category_id))
+    total_results = total_results.astype(np.float32)
+    torch.save(total_results, os.path.join(output_dir, "%02d.pt" % category_id))
 
 
 for category in get_categories():

@@ -3,6 +3,7 @@ import json
 from data import srdata
 import torch
 import numpy as np
+import sys
 
 CATEGORIES_FILE = 'annotations/instances_val2017.json'
 
@@ -51,6 +52,7 @@ class Coco(srdata.SRData):
 class CocoClasses(object):
     def __init__(self, dir_data, cap_dir):
         path = os.path.join(dir_data, 'coco', cap_dir)
+        hrpath = os.path.join(dir_data,'coco','hr')
         annotations = json.load(open(path))['annotations']
 
         self.categories_by_file = {}
@@ -58,6 +60,8 @@ class CocoClasses(object):
         for entry in annotations:
             catid = entry['category_id']
             imid = entry['image_id']
+            if not os.path.isfile(os.path.join(hrpath,self.filename_for_image_id(imid))):
+                continue
             if imid not in self.categories_by_file:
                 self.categories_by_file[imid] = set()
             self.categories_by_file[imid].add(catid)
@@ -71,11 +75,15 @@ class CocoClasses(object):
         return self.categories_by_file[int(filename.split('.')[0].lstrip('0'))]
     def get_categories_for_image_id(self, image_id):
         return self.categories_by_file[image_id]
+    def get_images_for_category(self, category):
+        return self.files_by_category[category]
     def get_files_for_category(self, category):
-        return self.files_by_category[catid]
+        return ["%012d.jpg" % i for i in self.get_images_for_category(category)]
     def get_all_image_ids(self):
         return sorted(list(self.categories_by_file.keys()))
     def get_all_categories(self):
         return sorted(list(self.files_by_category.keys()))
+    def filename_for_image_id(self, image_id):
+        return "%012d.jpg" % image_id
 
 

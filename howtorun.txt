@@ -1,1 +1,1 @@
-python main.py --data_test Coco --scale 4 --pre_train download --test_only --save_results --data_range 1-10
+python main.py --data_train Demo --data_test Demo --scale 4 --save_results

@@ -39,8 +39,9 @@ class Trainer():
 
         timer_data, timer_model = utility.timer(), utility.timer()
         # Julie: Added extra _
+        print("Loader train length: ",len(self.loader_train))
         for batch, (lr, hr, fname, average_classification, idx_scale) in enumerate(self.loader_train):
-            lr, hr = self.prepare(lr, hr)
+            lr, hr, average_classification = self.prepare(lr, hr, average_classification)
             timer_data.hold()
             timer_model.tic()
 
@@ -69,6 +70,7 @@ class Trainer():
 
         self.loss.end_log(len(self.loader_train))
         self.error_last = self.loss.log[-1, -1]
+        print("Done train step")
 
     def test(self):
         torch.set_grad_enabled(False)
@@ -87,7 +89,7 @@ class Trainer():
                 d.dataset.set_scale(idx_scale)
                 # Julie: Added extra _
                 for lr, hr, filename, average_classification, _ in tqdm(d, ncols=80):
-                    lr, hr = self.prepare(lr, hr)
+                    lr, hr, average_classification = self.prepare(lr, hr, average_classification)
                     #if self.args.use_classification:
                     sr = self.model(lr, idx_scale, average_classification)
                     #else:

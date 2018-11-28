@@ -29,7 +29,7 @@ class Demo(data.Dataset):
         lr, = common.set_channel(lr, n_channels=self.args.n_colors)
         lr_t, = common.np2Tensor(lr, rgb_range=self.args.rgb_range)
 
-        return lr_t, -1, filename
+        return lr_t, -1, filename, -1
 
     def __len__(self):
         return len(self.filelist)
