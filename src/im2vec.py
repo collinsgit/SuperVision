@@ -24,14 +24,15 @@ class CategoryDataSet(torch.utils.data.Dataset):
 
 def get_files_by_category(category_id):
     return [
-        'D:\\MITStuff\\Fall2018\\6.867\\Project\\SuperVision\\datasets\\coco\\hr\\000000000139.jpg',
-        'D:\\MITStuff\\Fall2018\\6.867\\Project\\SuperVision\\datasets\\coco\\hr\\000000000285.jpg',
-        'D:\\MITStuff\\Fall2018\\6.867\\Project\\SuperVision\\datasets\\coco\\hr\\000000000632.jpg'
+        '..\\..\\datasets\\coco\\hr\\000000000139.jpg',
+        '..\\..\\datasets\\coco\\hr\\000000000285.jpg',
+        '..\\..\\datasets\\coco\\hr\\000000000632.jpg'
             ]
 
 batch_size = 16
 
 def compute_average_for_category(category_id):
+    pass
 ds = CategoryDataSet(0)
 loader = torch.utils.data.DataLoader(ds, batch_size=2)
 
