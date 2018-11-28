@@ -29,21 +29,7 @@ class CategoryDataSet(torch.utils.data.Dataset):
 errors = []
 
 def get_cat_map():
-    classes = CocoClasses('../datasets', 'annotations/instances_val2017.json')
-    files = os.listdir('../datasets/coco/hr')
-
-    cat_map = {}
-    for file in files:
-        try:
-            cat = classes[file]
-        except KeyError:
-            errors.append(file)
-        else:
-            if cat not in cat_map:
-                cat_map[cat] = {file, }
-            else:
-                cat_map[cat].add(file)
-    return cat_map
+    return CocoClasses('../datasets', 'annotations/instances_val2017.json')
 
 
 catmap = get_cat_map()
@@ -53,9 +39,9 @@ errf.close()
 
 
 def get_files_by_category(category_id):
-    return catmap[category_id]
+    return catmap.get_files_for_category(category_id)
 def get_categories():
-    return sorted(list(catmap.keys()))
+    return catmap.get_all_categories()
 
 batch_size = 16
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -82,8 +68,6 @@ def compute_average_for_category(category_id):
         del results_cpu
         del results
         del im
-        torch.cuda.empty_cache()
-        gc.collect()
         i += 1
         print("Category: %2d, Batch number %4d/%4d" % (category_id, i, num_batches))
     total_results *= 1.0 / len(loader)

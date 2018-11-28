@@ -2,6 +2,7 @@ import os
 import json
 from data import srdata
 import torch
+import numpy as np
 
 CATEGORIES_FILE = 'annotations/instances_val2017.json'
 
@@ -20,11 +21,19 @@ class Coco(srdata.SRData):
         self.begin, self.end = list(map(lambda x: int(x), data_range))
 
         self.classes = CocoClasses(args.dir_data, CATEGORIES_FILE)
+        self.avg_by_class = {}
 
         super().__init__(args, name=name, train=train, benchmark=benchmark)
+        self._populate_avg_embedding()
+
+    def _populate_avg_embedding(self):
+        for each_category in self.classes.get_all_categories():
+            avgp = os.path.join(self.dir_avg_embedding, '%02d.pt' % each_category)
+            self.avg_by_class[each_category] = torch.load(avgp)
 
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, 'coco')
+        self.dir_avg_embedding = os.path.join(self.apath, 'avg_embeddings')
         self.dir_hr=os.path.join(self.apath,'hr')
         self.dir_lr=os.path.join(self.apath,'lr')
         self.ext = ('.jpg','.jpg')
@@ -35,8 +44,8 @@ class Coco(srdata.SRData):
 
     def __getitem__(self, idx):
         lr, hr, fname, _ = super().__getitem__(idx)
-        self.classes[fname]
-        return lr, hr, fname, torch.ones((128, 150, 150))
+        avg_classification = np.average([self.avg_by_class[c] for c in self.classes[fname]], axis=0)
+        return lr, hr, fname, avg_classification
 
 
 class CocoClasses(object):
@@ -44,10 +53,29 @@ class CocoClasses(object):
         path = os.path.join(dir_data, 'coco', cap_dir)
         annotations = json.load(open(path))['annotations']
 
-        self.categories = {}
+        self.categories_by_file = {}
+        self.files_by_category = {}
         for entry in annotations:
-            self.categories[entry['image_id']] = entry['category_id']
+            catid = entry['category_id']
+            imid = entry['image_id']
+            if imid not in self.categories_by_file:
+                self.categories_by_file[imid] = set()
+            self.categories_by_file[imid].add(catid)
+            if catid not in self.files_by_category:
+                self.files_by_category[catid] = set()
+            self.files_by_category[catid].add(imid) 
 
     def __getitem__(self, filename):
-        return self.categories[int(filename.split('.')[0].lstrip('0'))]
+        return self.categories_by_file[int(filename.split('.')[0].lstrip('0'))]
+    def get_categories_for_filename(self, filename):
+        return self.categories_by_file[int(filename.split('.')[0].lstrip('0'))]
+    def get_categories_for_image_id(self, image_id):
+        return self.categories_by_file[image_id]
+    def get_files_for_category(self, category):
+        return self.files_by_category[catid]
+    def get_all_image_ids(self):
+        return sorted(list(self.categories_by_file.keys()))
+    def get_all_categories(self):
+        return sorted(list(self.files_by_category.keys()))
+
 
