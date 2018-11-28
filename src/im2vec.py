@@ -7,6 +7,7 @@ import os
 import sys
 
 from data import embedimage
+from data.coco import CocoClasses
 
 mydir = os.path.split(__file__)[0]
 
@@ -28,6 +29,21 @@ def get_files_by_category(category_id):
         '..\\..\\datasets\\coco\\hr\\000000000285.jpg',
         '..\\..\\datasets\\coco\\hr\\000000000632.jpg'
             ]
+
+def get_cat_map():
+    classes = CocoClasses('../datasets', 'annotations/instances_val2017.json')
+    files = os.listdir('../datasets/hr')
+
+    cat_map = {}
+    for file in files:
+        cat = classes[file]
+        if cat not in cat_map:
+            cat_map[cat] = {file, }
+        else:
+            cat_map[cat].add(file)
+
+    return cat_map
+
 
 batch_size = 16
 
