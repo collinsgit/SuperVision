@@ -32,6 +32,10 @@ class Coco(srdata.SRData):
         names_hr, names_lr = super()._scan()
         return names_hr[self.begin:self.end], [names_lr[i][self.begin:self.end] for i in range(len(names_lr))]
 
+    def __getitem__(self, idx):
+        lr, hr, fname, _ = super().__getitem__(idx)
+        return lr, hr, fname, -1
+
 
 class CocoClasses(object):
     def __init__(self, dir_data, cap_dir):
