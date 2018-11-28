@@ -35,6 +35,7 @@ class Coco(srdata.SRData):
 
     def __getitem__(self, idx):
         lr, hr, fname, _ = super().__getitem__(idx)
+        self.classes[fname]
         return lr, hr, fname, torch.ones((128, 150, 150))
 
 
