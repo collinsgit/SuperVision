@@ -41,7 +41,7 @@ srcdir = os.path.split(__file__)[0]
 datasetdir = os.path.abspath(os.path.join(srcdir,'../datasets'))
 
 # Coco directories
-cocodir = os.path.join(datasetdir,'coco_fake')
+cocodir = os.path.join(datasetdir,'coco')
 annotationsdir = os.path.join(cocodir,'annotations')
 annotations_val_file = os.path.join(annotationsdir, 'instances_val2017.json')
 annotations_train_file = os.path.join(annotationsdir, 'instances_train2017.json')
