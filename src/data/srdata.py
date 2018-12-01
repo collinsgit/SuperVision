@@ -9,6 +9,12 @@ import numpy as np
 import imageio
 import torch
 import torch.utils.data as data
+from PIL import Image
+
+# This threw an exception!
+def imread(fname):
+    return np.asarray(Image.open(fname).convert("RGB"))
+
 
 class SRData(data.Dataset):
     def __init__(self, args, name='', train=True, benchmark=False):
@@ -136,7 +142,7 @@ class SRData(data.Dataset):
                     print('{} does not exist. Now making binary...'.format(f))
             b = [{
                 'name': os.path.splitext(os.path.basename(_l))[0],
-                'image': imageio.imread(_l)
+                'image': imread(_l)
             } for _l in l]
             with open(f, 'wb') as _f: pickle.dump(b, _f)
 
@@ -174,8 +180,8 @@ class SRData(data.Dataset):
         else:
             filename, _ = os.path.splitext(os.path.basename(f_hr))
             if self.args.ext == 'img' or self.benchmark:
-                hr = imageio.imread(f_hr)
-                lr = imageio.imread(f_lr)
+                hr = imread(f_hr)
+                lr = imread(f_lr)
             elif self.args.ext.find('sep') >= 0:
                 with open(f_hr, 'rb') as _f: hr = pickle.load(_f)[0]['image']
                 with open(f_lr, 'rb') as _f: lr = pickle.load(_f)[0]['image']

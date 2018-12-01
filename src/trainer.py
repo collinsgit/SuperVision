@@ -40,7 +40,14 @@ class Trainer():
         timer_data, timer_model = utility.timer(), utility.timer()
         # Julie: Added extra _
         print("Loader train length: ",len(self.loader_train))
+
+        #for example in self.loader_train:
+        #    pass
+
+
+        print("Starting batching")
         for batch, (lr, hr, fname, average_classification, idx_scale) in enumerate(self.loader_train):
+            print("Batch",batch)
             lr, hr, average_classification = self.prepare(lr, hr, average_classification)
             timer_data.hold()
             timer_model.tic()
