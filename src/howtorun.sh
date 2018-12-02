@@ -15,7 +15,7 @@ python main.py "--data_train" "Coco" "--data_test" "Coco" "--use_classification"
                 "--pre_train" \
                 "download" \
                 "--data_range" \
-                "1-16/1-2" \
+                "all" \
                 "--scale" \
                 "4" \
                 "--save_models" \

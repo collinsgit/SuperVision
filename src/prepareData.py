@@ -92,6 +92,7 @@ def parse_args():
     parser.add_argument('unzipped_val_dir',help='Where the original validation images are located')
     parser.add_argument('--scales',required=False,default=(2,3,4), nargs='+',type=int,help='Which LR scales to use')
     parser.add_argument('--unzipped_annotation_dir',required=False, type=os.path.abspath,help='Where the original annotation files are located (will be copied)')
+    parser.add_argument('--batch_size', required=False, default=16, type=int)
     parser.add_argument('--skip_train', required=False, action='store_const', const=True, default=False,help="Skip processing the training data")
     parser.add_argument('--skip_val', required=False, action='store_const', const=True, default=False,help="Skip processing the validation data")
     parser.add_argument('--skip_rsz', required=False, action='store_const', const=True, default=False,help="Skip cropping/resizing")
@@ -248,13 +249,13 @@ def main():
         print("Skipping Training Data Processing")
     else:
         print("Processing Training Data...")
-        process_images(args.unzipped_train_dir, train_categories, cocotrainhr, cocotrainlr, cocotrainavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz)
+        process_images(args.unzipped_train_dir, train_categories, cocotrainhr, cocotrainlr, cocotrainavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size)
 
     if args.skip_val:
         print("Skipping Validation Data Processing")
     else:
         print("Processing Validation Data...")
-        process_images(args.unzipped_val_dir, val_categories, cocovalhr, cocovallr, cocovalavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz)
+        process_images(args.unzipped_val_dir, val_categories, cocovalhr, cocovallr, cocovalavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size)
 
 if __name__ == "__main__":
     main()
