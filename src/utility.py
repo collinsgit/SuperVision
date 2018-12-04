@@ -5,6 +5,7 @@ import datetime
 from multiprocessing import Process
 from multiprocessing import Queue
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import imageio
@@ -12,8 +13,6 @@ import imageio
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
-
-matplotlib.use('Agg')
 
 
 class timer():
@@ -40,6 +39,7 @@ class timer():
 
     def reset(self):
         self.acc = 0
+
 
 def bg_target(queue):
     while True:
