@@ -8,7 +8,7 @@
 python prepareData.py path_to_unzipped_training path_to_unzipped_val --unzipped_annotation_dir path_to_unzipped_annotation
 
 # Run CEDSR (Classified-EDSR) for x4 scale
-# To use an existing model, replace 'download' with something like:
+# To use an existing model, 'replace 'download' with something like:
 # "../models/edsr_baseline_x4-6b446fab.pt" 
 # "../experiment/convavg/model_1.pt" 
 python main.py "--data_train" "Coco" "--data_test" "Coco" "--use_classification" \
