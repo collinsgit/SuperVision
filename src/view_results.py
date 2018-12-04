@@ -33,20 +33,22 @@ def parse_args():
     return args
 
 def plotmany(fnames, horizontallabels, verticallabels):
-    figure(0)
-
+    fig = figure(0)
     nr = len(fnames) + 1
     nc = max(map(len, fnames)) + 1
     for r in range(len(fnames)):
         for c in range(len(fnames[r])):
             subplot(nr, nc, (r+1) * nc + (c+1) + 1)
+            axis('off')
             im = Image.open(fnames[r][c])
             imshow(im)
     for i in range(len(horizontallabels)):
         subplot(nr, nc, i+2)
+        axis('off')
         text(0.5,0.5,horizontallabels[i],horizontalalignment='center', verticalalignment='center')
     for i in range(len(verticallabels)):
         subplot(nr, nc, (i+1) * nc + 1)
+        axis('off')
         text(0.5,0.5,verticallabels[i],horizontalalignment='center',verticalalignment='center')
     show()
 
