@@ -60,6 +60,10 @@ class CEDSR(nn.Module):
         self.butt = nn.Sequential(*m_butt)
         self.tail = nn.Sequential(*m_tail)
 
+        # keep head and body the same, to train new section
+        self.head.requires_grad = False
+        self.body.requires_grad = False
+
     def forward(self, x, avg_classification):
         x = self.sub_mean(x)
         x = self.head(x)
