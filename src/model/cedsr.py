@@ -51,7 +51,7 @@ class CEDSR(nn.Module):
 
         # define tail module
         m_tail = [
-            common.Upsampler(conv, scale, n_feats, act=False),
+            common.Upsampler(conv, scale, n_feats, act=False, input_feats=n_feats + embedding_size),
             conv(n_feats, args.n_colors, kernel_size)
         ]
 

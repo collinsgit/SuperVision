@@ -57,7 +57,7 @@ class Upsampler(nn.Sequential):
         m = []
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
             for i in range(int(math.log(scale, 2))):
-                if input_feats is None or not i:
+                if input_feats is None or i > 0:
                     m.append(conv(n_feats, 4 * n_feats, 3, bias))
                 else:
                     m.append(conv(input_feats, 4 * n_feats, 3, bias))
