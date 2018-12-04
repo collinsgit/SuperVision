@@ -9,45 +9,54 @@ import sys
 
 import gc
 
-from data import embedimage
-from data.coco import CocoClasses
+from src.data import embedimage
+from src.data.coco import CocoClasses
 
 mydir = os.path.split(__file__)[0]
 
 root = '../datasets/coco/hr'
 output_dir = os.path.abspath('../datasets/coco/avg_embeddings/')
 
+
 class CategoryDataSet(torch.utils.data.Dataset):
     def __init__(self, category_id, *args, **kwargs):
         self.files = list(get_files_by_category(category_id))
         super().__init__(*args, **kwargs)
+
     def __getitem__(self, idx):
-         return transforms.ToTensor()(Image.open(os.path.join(root,self.files[idx])).convert('RGB'))
+        return transforms.ToTensor()(Image.open(os.path.join(root,self.files[idx])).convert('RGB'))
+
     def __len__(self):
         return len(self.files)
 
+
 errors = []
+
 
 def get_cat_map():
     return CocoClasses('../datasets', 'annotations/instances_val2017.json')
 
 
 catmap = get_cat_map()
-errf = open('errors.txt','w')
+errf = open('errors.txt', 'w')
 errf.write(str(errors))
 errf.close()
 
 
 def get_files_by_category(category_id):
     return catmap.get_files_for_category(category_id)
+
+
 def get_categories():
     return catmap.get_all_categories()
 
+
 batch_size = 16
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-#device = 'cpu'
+# device = 'cpu'
 em = embedimage.VGG()
 em = em.to(device)
+
 
 def compute_average_for_category(category_id):
     ds = CategoryDataSet(category_id)
@@ -77,5 +86,4 @@ def compute_average_for_category(category_id):
 
 for category in get_categories():
     compute_average_for_category(category)
-    print("Done",category)
-
+    print("Done", category)

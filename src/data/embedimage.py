@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 
+
 class VGG(nn.Module):
     def __init__(self):
         rgb_range=1

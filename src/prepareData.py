@@ -47,17 +47,17 @@ annotations_val_file = os.path.join(annotationsdir, 'instances_val2017.json')
 annotations_train_file = os.path.join(annotationsdir, 'instances_train2017.json')
 
 # Training directories
-cocotraindir = os.path.join(cocodir,'train')
+cocotraindir = os.path.join(cocodir, 'train')
 cocotrainhr = os.path.join(cocotraindir, 'hr')
 cocotrainlr = os.path.join(cocotraindir, 'lr')
 
-cocotrainavg = os.path.join(cocotraindir,'avg_embeddings')
+cocotrainavg = os.path.join(cocotraindir, 'avg_embeddings')
 
 # Validation directories
-cocovaldir = os.path.join(cocodir,'val')
-cocovalhr = os.path.join(cocovaldir,'hr')
-cocovallr = os.path.join(cocovaldir,'lr')
-cocovalavg = os.path.join(cocovaldir,'avg_embeddings')
+cocovaldir = os.path.join(cocodir, 'val')
+cocovalhr = os.path.join(cocovaldir, 'hr')
+cocovallr = os.path.join(cocovaldir, 'lr')
+cocovalavg = os.path.join(cocovaldir, 'avg_embeddings')
 
 
 def validate_directories(scales):
@@ -86,6 +86,7 @@ def validate_directories(scales):
         os.makedirs(os.path.join(cocovallr, 'X%d' % scale),exist_ok=True)
     os.makedirs(cocovalavg, exist_ok=True)
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Filters, Crops, and Resizes training/validation images")
     parser.add_argument('unzipped_train_dir',help='Where the original training images are located')
@@ -99,6 +100,7 @@ def parse_args():
     parser.add_argument('--skip_avg', required=False, action='store_const', const=True, default=False,help="Skip computing categorical averages")
     args = parser.parse_args()
     return args
+
 
 def copy_annotations(unzipped_annotation_dir):
     assert os.path.isdir(unzipped_annotation_dir),"Provided annotations directory is not a directory:\n%s" % (unzipped_annotation_dir)
@@ -116,6 +118,7 @@ def copy_annotations(unzipped_annotation_dir):
                     ):
         shutil.copy(*cpargs)
 
+
 class CategoryDataSet(torch.utils.data.Dataset):
     def __init__(self, valid_files, categories, category_id, roothr, *args, **kwargs):
         self.files = list(set(categories.get_files_for_category(category_id)).intersection(valid_files))
@@ -123,10 +126,13 @@ class CategoryDataSet(torch.utils.data.Dataset):
         self.roothr = roothr
         self.category_id = category_id
         super().__init__(*args, **kwargs)
+
     def __getitem__(self, idx):
          return self.tsfm(Image.open(os.path.join(self.roothr,self.files[idx])))
+
     def __len__(self):
         return len(self.files)
+
 
 def compute_average_for_category(ds, em, device, output_dir, batch_size=16):
     loader = torch.utils.data.DataLoader(ds, batch_size=batch_size)
@@ -177,6 +183,7 @@ def _process_image(args):
     del tsfm
     return 1
 
+
 def do_image_resizing(found_and_labelled_files, imagedir, categories, 
             outputhr, outputlr, outputavg, scales, 
             desired_size=300, n_workers=6, batch_size=16):
@@ -187,6 +194,7 @@ def do_image_resizing(found_and_labelled_files, imagedir, categories,
             outputhr, outputlr, scales, 
             desired_size, batch_size) for fname in found_and_labelled_files])
     print("All files cropped and resized!")
+
 
 def do_category_averaging(found_and_labelled_files, imagedir, categories, 
     outputhr, outputlr, outputavg, scales, 
@@ -204,6 +212,7 @@ def do_category_averaging(found_and_labelled_files, imagedir, categories,
     for category_id in categories.get_all_categories():
         ds = CategoryDataSet(found_and_labelled_files, categories, category_id, outputhr)
         compute_average_for_category(ds, em, device, outputavg, batch_size)
+
 
 def process_images(imagedir, categories, 
             outputhr, outputlr, outputavg, scales, 
@@ -256,6 +265,7 @@ def main():
     else:
         print("Processing Validation Data...")
         process_images(args.unzipped_val_dir, val_categories, cocovalhr, cocovallr, cocovalavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size)
+
 
 if __name__ == "__main__":
     main()

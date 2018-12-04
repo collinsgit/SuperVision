@@ -9,6 +9,7 @@ import imageio
 import torch
 import torch.utils.data as data
 
+
 class Video(data.Dataset):
     def __init__(self, args, name='Video', train=False, benchmark=False):
         self.args = args

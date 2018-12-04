@@ -11,6 +11,7 @@ import torch
 import torch.utils.data as data
 from PIL import Image
 
+
 # This threw an exception!
 def imread(fname):
     return np.asarray(Image.open(fname).convert("RGB"))
