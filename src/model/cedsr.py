@@ -21,7 +21,9 @@ class CEDSR(nn.Module):
         super().__init__()
 
         n_resblocks = args.n_resblocks
+        n_embed_blocks = args.n_embed_blocks
         n_feats = args.n_feats
+        embedding_size = args.embedding_size
         kernel_size = 3 
         scale = args.scale[0]
         act = nn.ReLU(True)
@@ -40,6 +42,13 @@ class CEDSR(nn.Module):
         ]
         m_body.append(conv(n_feats, n_feats, kernel_size))
 
+        # define butt module
+        m_butt = [
+            common.ResBlock(
+                conv, n_feats + embedding_size, kernel_size, act=act, res_scale=args.res_scale
+            ) for _ in range(n_embed_blocks)
+        ]
+
         # define tail module
         m_tail = [
             common.Upsampler(conv, scale, n_feats, act=False),
@@ -48,7 +57,7 @@ class CEDSR(nn.Module):
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
-        self.integrate = nn.Conv2d(n_feats + 128, n_feats, 3, padding=1)
+        self.butt = nn.Sequential(*m_butt)
         self.tail = nn.Sequential(*m_tail)
 
     def forward(self, x, avg_classification):
@@ -58,9 +67,10 @@ class CEDSR(nn.Module):
         res = self.body(x)
         res += x
 
-        avg = F.interpolate(avg_classification, x.size()[2:], mode='bilinear')
+        avg = F.interpolate(avg_classification, x.size()[-2:])
         x = torch.cat((avg, res), dim=1)
-        x = self.integrate(x)
+
+        x = self.butt(x)
 
         x = self.tail(x)
         x = self.add_mean(x)

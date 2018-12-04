@@ -52,12 +52,15 @@ class ResBlock(nn.Module):
         return res
 
 class Upsampler(nn.Sequential):
-    def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=True):
+    def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=True, input_feats=None):
 
         m = []
         if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
-            for _ in range(int(math.log(scale, 2))):
-                m.append(conv(n_feats, 4 * n_feats, 3, bias))
+            for i in range(int(math.log(scale, 2))):
+                if input_feats is None or not i:
+                    m.append(conv(n_feats, 4 * n_feats, 3, bias))
+                else:
+                    m.append(conv(input_feats, 4 * n_feats, 3, bias))
                 m.append(nn.PixelShuffle(2))
                 if bn: m.append(nn.BatchNorm2d(n_feats))
 
@@ -67,7 +70,10 @@ class Upsampler(nn.Sequential):
                     m.append(nn.PReLU(n_feats))
 
         elif scale == 3:
-            m.append(conv(n_feats, 9 * n_feats, 3, bias))
+            if input_feats is None:
+                m.append(conv(n_feats, 9 * n_feats, 3, bias))
+            else:
+                m.append(conv(input_feats, 9 * n_feats, 3, bias))
             m.append(nn.PixelShuffle(3))
             if bn: m.append(nn.BatchNorm2d(n_feats))
 
