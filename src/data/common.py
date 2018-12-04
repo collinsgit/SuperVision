@@ -5,6 +5,7 @@ import skimage.color as sc
 
 import torch
 
+
 def get_patch(*args, patch_size=96, scale=2, multi=False, input_large=False):
     ih, iw = args[0].shape[:2]
 
@@ -31,6 +32,7 @@ def get_patch(*args, patch_size=96, scale=2, multi=False, input_large=False):
 
     return ret
 
+
 def set_channel(*args, n_channels=3):
     def _set_channel(img):
         if img.ndim == 2:
@@ -46,6 +48,7 @@ def set_channel(*args, n_channels=3):
 
     return [_set_channel(a) for a in args]
 
+
 def np2Tensor(*args, rgb_range=255):
     def _np2Tensor(img):
         np_transpose = np.ascontiguousarray(img.transpose((2, 0, 1)))
@@ -55,6 +58,7 @@ def np2Tensor(*args, rgb_range=255):
         return tensor
 
     return [_np2Tensor(a) for a in args]
+
 
 def augment(*args, hflip=True, rot=True):
     hflip = hflip and random.random() < 0.5

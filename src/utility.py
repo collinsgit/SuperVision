@@ -4,17 +4,17 @@ import time
 import datetime
 from multiprocessing import Process
 from multiprocessing import Queue
-
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 import numpy as np
 import imageio
 
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
+
+matplotlib.use('Agg')
+
 
 class timer():
     def __init__(self):
@@ -47,6 +47,7 @@ def bg_target(queue):
             filename, tensor = queue.get()
             if filename is None: break
             imageio.imwrite(filename, tensor.numpy())
+
 
 class checkpoint():
     def __init__(self, args):
@@ -134,8 +135,6 @@ class checkpoint():
     def begin_background(self):
         self.queue = Queue()
 
-        
-        
         self.process = [
             Process(target=bg_target, args=(self.queue,)) \
             for _ in range(self.n_processes)
@@ -161,9 +160,11 @@ class checkpoint():
                 tensor_cpu = normalized.byte().permute(1, 2, 0).cpu()
                 self.queue.put(('{}{}.png'.format(filename, p), tensor_cpu))
 
+
 def quantize(img, rgb_range):
     pixel_range = 255 / rgb_range
     return img.mul(pixel_range).clamp(0, 255).round().div(pixel_range)
+
 
 def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     if hr.nelement() == 1: return 0
@@ -182,6 +183,7 @@ def calc_psnr(sr, hr, scale, rgb_range, dataset=None):
     mse = valid.pow(2).mean()
 
     return -10 * math.log10(mse)
+
 
 def make_optimizer(args, target):
     '''

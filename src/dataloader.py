@@ -26,6 +26,7 @@ if sys.version_info[0] == 2:
 else:
     import queue
 
+
 def _ms_loop(dataset, index_queue, data_queue, collate_fn, scale, seed, init_fn, worker_id):
     global _use_shared_memory
     _use_shared_memory = True
@@ -51,6 +52,7 @@ def _ms_loop(dataset, index_queue, data_queue, collate_fn, scale, seed, init_fn,
             data_queue.put((idx, ExceptionWrapper(sys.exc_info())))
         else:
             data_queue.put((idx, samples))
+
 
 class _MSDataLoaderIter(_DataLoaderIter):
     def __init__(self, loader):
@@ -122,14 +124,15 @@ class _MSDataLoaderIter(_DataLoaderIter):
 
             # prime the prefetch loop
             for _ in range(2 * self.num_workers):
+
                 self._put_indices()
 
+
 class MSDataLoader(DataLoader):
-    def __init__(
-        self, args, dataset, batch_size=1, shuffle=False,
-        sampler=None, batch_sampler=None,
-        collate_fn=default_collate, pin_memory=False, drop_last=False,
-        timeout=0, worker_init_fn=None):
+    def __init__(self, args, dataset, batch_size=1, shuffle=False,
+                 sampler=None, batch_sampler=None,
+                 collate_fn=default_collate, pin_memory=False, drop_last=False,
+                 timeout=0, worker_init_fn=None):
 
         super(MSDataLoader, self).__init__(
             dataset, batch_size=batch_size, shuffle=shuffle,

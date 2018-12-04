@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import sys
 
+
 class Coco(srdata.SRData):
     def __init__(self, args, name='coco',train=True,benchmark=False):
         if args.data_range == 'all':
@@ -20,7 +21,6 @@ class Coco(srdata.SRData):
                     data_range = data_range[1]
 
             self.begin, self.end = list(map(lambda x: int(x), data_range))
-
 
         super().__init__(args, name=name, train=train, benchmark=benchmark)
 
@@ -79,20 +79,28 @@ class CocoClasses(object):
 
     def __getitem__(self, filename):
         return self.categories_by_file[int(os.path.splitext(os.path.basename(filename))[0])]
+
     def get_categories_for_filename(self, filename):
         yield from self.categories_by_file[int(os.path.splitext(os.path.basename(filename))[0])]
+
     def get_categories_for_image_id(self, image_id):
         yield from self.categories_by_file[image_id]
+
     def get_images_for_category(self, category):
         yield from self.files_by_category[category]
+
     def get_files_for_category(self, category):
         yield from map(self.filename_for_image_id, self.get_images_for_category(category))
+
     def get_all_image_ids(self):
         yield from self.categories_by_file.keys()
+
     def get_all_filenames(self):
         yield from map(self.filename_for_image_id, self.categories_by_file.keys())
+
     def get_all_categories(self):
         yield from self.files_by_category.keys()
+
     def filename_for_image_id(self, image_id):
         return "%012d.jpg" % image_id
 
