@@ -1,4 +1,7 @@
-*
+*.+
+**/results-*
+**/model/*.pt
+**/optimizer.pt
 !.gitignore
-!/model/*.pt
+!**/model/model_best.pt
 *.txt
