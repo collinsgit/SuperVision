@@ -54,7 +54,11 @@ class Coco(srdata.SRData):
 
     def __getitem__(self, idx):
         lr, hr, fname, _ = super().__getitem__(idx)
-        avg_classification = np.average([self.avg_by_class[c] for c in self.classes[fname]], axis=0)
+        avg_classification = None
+        for c in self.classes[fname]:
+            avg_classification = self.avg_by_class[c]
+            break
+        # avg_classification = np.average([self.avg_by_class[c] for c in self.classes[fname]], axis=0)
         return lr, hr, fname, avg_classification
 
 
