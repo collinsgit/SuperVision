@@ -4,33 +4,25 @@ from data import srdata
 import torch
 import numpy as np
 import sys
+import random
+from tqdm import tqdm
 
 
 class Coco(srdata.SRData):
     def __init__(self, args, name='coco',train=True,benchmark=False):
-        if args.data_range == 'all':
-            self.begin, self.end = None, None
-        else:
-            data_range = [r.split('-') for r in args.data_range.split('/')]
-            if train:
-                data_range = data_range[0]
-            else:
-                if args.test_only and len(data_range) == 1:
-                    data_range = data_range[0]
-                else:
-                    data_range = data_range[1]
+        self.train = train
+        self.args = args
 
-            self.begin, self.end = list(map(lambda x: int(x), data_range))
-
-        super().__init__(args, name=name, train=train, benchmark=benchmark)
-
-        self.classes = CocoClasses(os.path.join(
-            self.apath,
-            '..',
-            'annotations',
-            'instances_%s2017.json' % ('train' if self.train else 'val')),
+        self._set_filesystem(args.dir_data)
+        self.classes = CocoClasses.make(os.path.join(
+                self.apath,
+                '..',
+                'annotations',
+                'instances_%s2017.json' % ('train' if self.train else 'val')
+            ),
             self.dir_hr
-            )
+        )
+        super().__init__(args, name=name, train=train, benchmark=benchmark)
         self.avg_by_class = {}
         self._populate_avg_embedding()
 
@@ -46,11 +38,56 @@ class Coco(srdata.SRData):
         self.dir_lr=os.path.join(self.apath,'lr')
         self.ext = ('.jpg','.jpg')
 
+    def _get_datarange(self):
+        def get_filenames_from_imid(imid):
+            return (os.path.join(self.dir_hr,'%012d%s' % (imid,self.ext[0])),
+                    [
+                        os.path.join(self.dir_lr, 'X%d' % (s),'%012dx%d%s' % (imid, s, self.ext[1]))  
+                        for s in self.args.scale
+                    ])
+
+        all_categories = sorted(list(self.classes.get_all_categories()))
+        if self.args.randomize_categories:
+            random.shuffle(all_categories)
+        data_range = self.args.data_range.split('/')
+        assert len(data_range) > 0, "Data range must not be empty"
+        if self.train:
+            data_range = data_range[0]
+        else:
+            data_range = data_range[-1]
+        images_to_load = set()
+        categories_to_load = {}
+        if data_range == 'all':
+            images_to_load = self.classes.get_all_image_ids()
+        else:
+            for component in data_range.split('+'):
+                category_spec, num_per_category = component.split(',')
+                num_per_category = int(num_per_category)
+                # Range, not random
+                for k in range(*map(int,category_spec.split('-'))):
+                    k = all_categories[k]
+                    if k not in categories_to_load:
+                        categories_to_load[k] = 0
+                    categories_to_load[k] += num_per_category
+        
+        for each_cat in categories_to_load.keys():
+            images = list(sorted(self.classes.get_images_for_category(each_cat)))
+            if self.args.randomize_category_picks:
+                random.shuffle(images)
+            images_to_load.update(set(images[:categories_to_load[each_cat]]))
+        print("Loading",images_to_load)
+        return list(map(get_filenames_from_imid,images_to_load))
+
+        
+
+
     def _scan(self):
-        names_hr, names_lr = super()._scan()
-        if self.begin is None or self.end is None:
-            return names_hr, names_lr
-        return names_hr[self.begin:self.end], [names_lr[i][self.begin:self.end] for i in range(len(names_lr))]
+        dr = self._get_datarange()
+        print(dr)
+        names_hr, all_lr = list(zip(*self._get_datarange()))
+        names_lr = list(zip(*all_lr))
+        print(names_hr, names_lr)
+        return names_hr, names_lr
 
     def __getitem__(self, idx):
         lr, hr, fname, _ = super().__getitem__(idx)
@@ -69,7 +106,8 @@ class CocoClasses(object):
 
         self.categories_by_file = {}
         self.files_by_category = {}
-        for entry in annotations:
+        print("Parsing annotation file")
+        for entry in tqdm(annotations):
             catid = entry['category_id']
             imid = entry['image_id']
             if hrpath is not None and not os.path.isfile(os.path.join(hrpath,self.filename_for_image_id(imid))):
@@ -103,9 +141,32 @@ class CocoClasses(object):
         yield from map(self.filename_for_image_id, self.categories_by_file.keys())
 
     def get_all_categories(self):
-        yield from self.files_by_category.keys()
+        yield from list(self.files_by_category.keys())
 
     def filename_for_image_id(self, image_id):
         return "%012d.jpg" % image_id
 
+    def filterby(self, hrpath):
+        print("Filtering images...")
+        for imid in tqdm(list(self.get_all_image_ids())):
+            if not os.path.isfile(os.path.join(hrpath,self.filename_for_image_id(imid))):
+                # We don't actually have this image
+                categories_to_modify = list(self.get_categories_for_image_id(imid))
+                del self.categories_by_file[imid]
+                for cat in categories_to_modify:
+                    self.files_by_category[cat].remove(imid)
+        return self
+
+    @staticmethod 
+    def make(captionpath, hrpath):
+        saved = '%s.pt' % os.path.splitext(captionpath)[0]
+        if os.path.isfile(saved):
+            print("Using cached annotation file for:\n%s" % captionpath)
+            obj = torch.load(saved)
+            return obj
+        else:
+            obj = CocoClasses(captionpath)
+            obj.filterby(hrpath)
+            torch.save(obj, saved)
+            return obj
 

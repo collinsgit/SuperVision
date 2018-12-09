@@ -47,7 +47,11 @@ parser.add_argument('--no_augment', action='store_true',
 #Julie changed this
 parser.add_argument('--use_classification', action='store_true', default=False,
                     help='whether or not to pass the model the classification of the input image, as an average VGG output')
-                    
+parser.add_argument('--randomize_category_picks', action='store_true', default=False,
+                    help='Choose pictures randomly from data_range categories, instead of first items')
+parser.add_argument('--randomize_categories', action='store_true', default=False,
+                    help='Randomize the categories that are chosen from')
+                  
 # Model specifications
 parser.add_argument('--model', default='CEDSR',
                     help='model name')
