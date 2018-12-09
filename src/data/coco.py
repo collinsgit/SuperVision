@@ -12,14 +12,13 @@ class Coco(srdata.SRData):
     def __init__(self, args, name='coco',train=True,benchmark=False):
         self.train = train
         self.args = args
-
         self._set_filesystem(args.dir_data)
-        self.classes = CocoClasses.make(os.path.join(
+        self.classes = CocoClasses.make(os.path.abspath(os.path.join(
                 self.apath,
                 '..',
                 'annotations',
                 'instances_%s2017.json' % ('train' if self.train else 'val')
-            ),
+            )),
             self.dir_hr
         )
         super().__init__(args, name=name, train=train, benchmark=benchmark)
@@ -29,7 +28,10 @@ class Coco(srdata.SRData):
     def _populate_avg_embedding(self):
         for each_category in self.classes.get_all_categories():
             avgp = os.path.join(self.dir_avg_embedding, '%02d.pt' % each_category)
-            self.avg_by_class[each_category] = torch.load(avgp)
+            if self.args.use_optimal_embedding:
+                self.avg_by_class[each_category] = -1
+            else:
+                self.avg_by_class[each_category] = torch.load(avgp)
 
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, 'coco', 'train' if self.train else 'val')
@@ -82,10 +84,8 @@ class Coco(srdata.SRData):
 
     def _scan(self):
         dr = self._get_datarange()
-        print(dr)
         names_hr, all_lr = list(zip(*self._get_datarange()))
         names_lr = list(zip(*all_lr))
-        print(names_hr, names_lr)
         return names_hr, names_lr
 
     def __getitem__(self, idx):
@@ -145,21 +145,22 @@ class CocoClasses(object):
     def filename_for_image_id(self, image_id):
         return "%012d.jpg" % image_id
 
-    def filterby(self, hrpath):
-        print("Filtering images...")
-        for imid in tqdm(list(self.get_all_image_ids())):
-            if not os.path.isfile(os.path.join(hrpath,self.filename_for_image_id(imid))):
-                # We don't actually have this image
-                categories_to_modify = list(self.get_categories_for_image_id(imid))
-                del self.categories_by_file[imid]
-                for cat in categories_to_modify:
-                    self.files_by_category[cat].remove(imid)
+    def filterby(self, hrpath = None):
+        if hrpath is not None:
+            print("Filtering images...")
+            for imid in tqdm(list(self.get_all_image_ids())):
+                if not os.path.isfile(os.path.join(hrpath,self.filename_for_image_id(imid))):
+                    # We don't actually have this image
+                    categories_to_modify = list(self.get_categories_for_image_id(imid))
+                    del self.categories_by_file[imid]
+                    for cat in categories_to_modify:
+                        self.files_by_category[cat].remove(imid)
         return self
 
     @staticmethod 
-    def make(captionpath, hrpath):
+    def make(captionpath, hrpath = None, force_refresh=False):
         saved = '%s.pt' % os.path.splitext(captionpath)[0]
-        if os.path.isfile(saved):
+        if not force_refresh and os.path.isfile(saved):
             print("Using cached annotation file for:\n%s" % captionpath)
             obj = torch.load(saved)
             return obj

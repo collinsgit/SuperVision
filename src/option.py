@@ -27,7 +27,7 @@ parser.add_argument('--data_train', type=str, default='Coco',
                     help='train dataset name')
 parser.add_argument('--data_test', type=str, default='Coco',
                     help='test dataset name')
-parser.add_argument('--data_range', type=str, default='1-800/801-810',
+parser.add_argument('--data_range', type=str, default='0-20,1000/21-40,100',
                     help='train/test data range')
 # CHANGED: Julie changed this, blame Eric if this goes wrong
 parser.add_argument('--ext', type=str, default='img',
@@ -44,14 +44,18 @@ parser.add_argument('--chop', action='store_true',
                     help='enable memory-efficient forward')
 parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
-#Julie changed this
+
+
+# CEDSR
 parser.add_argument('--use_classification', action='store_true', default=False,
                     help='whether or not to pass the model the classification of the input image, as an average VGG output')
 parser.add_argument('--randomize_category_picks', action='store_true', default=False,
                     help='Choose pictures randomly from data_range categories, instead of first items')
 parser.add_argument('--randomize_categories', action='store_true', default=False,
                     help='Randomize the categories that are chosen from')
-                  
+parser.add_argument('--use_optimal_embedding', action='store_true', default=False,
+                    help='Instead of using average embeddings train/test on embeddings directly from the HR image.')
+
 # Model specifications
 parser.add_argument('--model', default='CEDSR',
                     help='model name')

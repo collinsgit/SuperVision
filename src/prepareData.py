@@ -98,6 +98,7 @@ def parse_args():
     parser.add_argument('--skip_val', required=False, action='store_const', const=True, default=False,help="Skip processing the validation data")
     parser.add_argument('--skip_rsz', required=False, action='store_const', const=True, default=False,help="Skip cropping/resizing")
     parser.add_argument('--skip_avg', required=False, action='store_const', const=True, default=False,help="Skip computing categorical averages")
+    parser.add_argument('--data_range', required=False, default=None, help='The data range to prepare, as passed to main.py')
     args = parser.parse_args()
     return args
 
@@ -157,6 +158,33 @@ def compute_average_for_category(ds, em, device, output_dir, batch_size=16):
     total_results = total_results.astype(np.float32)
     torch.save(total_results, os.path.join(output_dir, "%02d.pt" % ds.category_id))
 
+def _get_datarange(data_range, is_train, classes):
+        all_categories = sorted(list(classes.get_all_categories()))
+        data_range = data_range.split('/')
+        assert len(data_range) > 0, "Data range must not be empty"
+        if is_train:
+            data_range = data_range[0]
+        else:
+            data_range = data_range[-1]
+        images_to_load = set()
+        categories_to_load = {}
+        if data_range == 'all':
+            images_to_load = classes.get_all_image_ids()
+        else:
+            for component in data_range.split('+'):
+                category_spec, num_per_category = component.split(',')
+                num_per_category = int(num_per_category)
+                # Range, not random
+                for k in range(*map(int,category_spec.split('-'))):
+                    k = all_categories[k]
+                    if k not in categories_to_load:
+                        categories_to_load[k] = 0
+                    categories_to_load[k] += num_per_category
+        
+        for each_cat in categories_to_load.keys():
+            images = list(sorted(classes.get_images_for_category(each_cat)))
+            images_to_load.update(set(images[:categories_to_load[each_cat]]))
+        return list(map(classes.filename_for_image_id,images_to_load))
 
 def _process_image(args):
     fname, imagedir, outputhr, outputlr, scales, desired_size, batch_size = args
@@ -216,10 +244,14 @@ def do_category_averaging(found_and_labelled_files, imagedir, categories,
 
 def process_images(imagedir, categories, 
             outputhr, outputlr, outputavg, scales, 
-            desired_size=300, n_workers=6, batch_size=16, skip_avg=False, skip_crop=False):
+            desired_size=300, n_workers=6, batch_size=16, skip_avg=False, skip_crop=False,
+            is_train=False, datarange=None):
     labelled_files = set(categories.get_all_filenames())
     found_files = set(os.listdir(imagedir))
     found_and_labelled_files = labelled_files.intersection(found_files)
+    if datarange is not None:
+        dr = set(_get_datarange(datarange, is_train, categories))
+        found_and_labelled_files.intersection_update(dr)
     if skip_crop:
         print("Skipping Cropping/Resizing images")
     else:
@@ -251,20 +283,22 @@ def main():
     validate_directories(args.scales)
 
     print("Parsing annotation files...")
-    train_categories = CocoClasses(annotations_train_file)
-    val_categories = CocoClasses(annotations_val_file)
+    train_categories = CocoClasses.make(annotations_train_file)
+    val_categories = CocoClasses.make(annotations_val_file)
+
+    dr = args.data_range
 
     if args.skip_train:
         print("Skipping Training Data Processing")
     else:
         print("Processing Training Data...")
-        process_images(args.unzipped_train_dir, train_categories, cocotrainhr, cocotrainlr, cocotrainavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size)
+        process_images(args.unzipped_train_dir, train_categories, cocotrainhr, cocotrainlr, cocotrainavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size, is_train=True, datarange=dr)
 
     if args.skip_val:
         print("Skipping Validation Data Processing")
     else:
         print("Processing Validation Data...")
-        process_images(args.unzipped_val_dir, val_categories, cocovalhr, cocovallr, cocovalavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size)
+        process_images(args.unzipped_val_dir, val_categories, cocovalhr, cocovallr, cocovalavg, args.scales, skip_avg=args.skip_avg, skip_crop=args.skip_rsz, batch_size=args.batch_size, is_train=False, datarange=dr)
 
 
 if __name__ == "__main__":

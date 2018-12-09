@@ -7,12 +7,21 @@ import utility
 import torch
 import torch.nn.utils as utils
 from tqdm import tqdm
+from data import embedimage
 
 
 class Trainer():
     def __init__(self, args, loader, my_model, my_loss, ckp):
         self.args = args
         self.scale = args.scale
+
+        self.embedder = embedimage.VGG()
+        device = torch.device('cpu' if args.cpu else 'cuda')
+        self.embedder = self.embedder.to(device)
+        if not args.cpu and args.n_GPUs > 1:
+            self.embedder = nn.DataParallel(
+                self.embedder, range(args.n_GPUs)
+            )
 
         self.ckp = ckp
         self.loader_train = loader.loader_train
@@ -46,10 +55,13 @@ class Trainer():
         #    pass
 
 
-        print("Starting batching")
-        for batch, (lr, hr, fname, average_classification, idx_scale) in enumerate(self.loader_train):
-            print("Batch",batch)
-            lr, hr, average_classification = self.prepare(lr, hr, average_classification)
+        print("Training...")
+        for batch, (lr, hr, fname, average_classification, idx_scale) in enumerate(tqdm(self.loader_train)):
+            lr, hr = self.prepare(lr, hr)
+            if self.args.use_optimal_embedding:
+                average_classification = self.embedder(hr)
+            else:
+                average_classification = self.prepare(average_classification)
             timer_data.hold()
             timer_model.tic()
 
@@ -97,7 +109,11 @@ class Trainer():
                 d.dataset.set_scale(idx_scale)
                 # Julie: Added extra _
                 for lr, hr, filename, average_classification, _ in tqdm(d, ncols=80):
-                    lr, hr, average_classification = self.prepare(lr, hr, average_classification)
+                    lr, hr = self.prepare(lr, hr)
+                    if self.args.use_optimal_embedding:
+                        average_classification = self.embedder(hr)
+                    else:
+                        average_classification = self.prepare(average_classification)
                     #if self.args.use_classification:
                     sr = self.model(lr, idx_scale, average_classification)
                     #else:
