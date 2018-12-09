@@ -75,7 +75,6 @@ class Coco(srdata.SRData):
             if self.args.randomize_category_picks:
                 random.shuffle(images)
             images_to_load.update(set(images[:categories_to_load[each_cat]]))
-        print("Loading",images_to_load)
         return list(map(get_filenames_from_imid,images_to_load))
 
         
