@@ -49,12 +49,17 @@ parser.add_argument('--no_augment', action='store_true',
 # CEDSR
 parser.add_argument('--use_classification', action='store_true', default=False,
                     help='whether or not to pass the model the classification of the input image, as an average VGG output')
+parser.add_argument('--erase_classification', action='store_true', default=False,
+                    help='Instead of using average embeddings train/test on embeddings of zeros')
 parser.add_argument('--randomize_category_picks', action='store_true', default=False,
                     help='Choose pictures randomly from data_range categories, instead of first items')
 parser.add_argument('--randomize_categories', action='store_true', default=False,
                     help='Randomize the categories that are chosen from')
 parser.add_argument('--use_optimal_embedding', action='store_true', default=False,
                     help='Instead of using average embeddings train/test on embeddings directly from the HR image.')
+parser.add_argument('--use_small_embedding', action='store_true', default=False,
+                    help='Instead of using average embeddings train/test on embeddings directly from the upscaled LR image.')                
+
 
 # Model specifications
 parser.add_argument('--model', default='CEDSR',

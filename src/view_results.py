@@ -4,12 +4,17 @@ import argparse
 import math
 from PIL import Image
 import random
+import torchvision.transforms as transforms
 
 src = os.path.abspath(os.path.split(__file__)[0])
 cocodir = os.path.abspath(os.path.join(src,'..','datasets','coco'))
 hrpath = os.path.join(cocodir, 'hr')
 lrpath = os.path.join(cocodir,'lr')
 
+def resize(im, percentage):
+    w, h = im.size
+    w, h = int(w * (percentage / 100)), int(h * (percentage / 100))
+    return im.resize((w,h))
 
 def xor(a,b):
     return a or b and not (a and b)
@@ -22,7 +27,7 @@ def parse_args():
     parser.add_argument('--models', required=True, nargs='+', help="Which models to show results for")
     parser.add_argument('--random', required=False, type=int, default=None,help='Randomly sample this many images')
     parser.add_argument('--scale', required=False, type=int, nargs='+', default=(4,), help="Show results from these scales")
-    parser.add_argument('--indices',required=False, type=lambda s: list(map(int,t.split('-'))), nargs='+', default=None)
+    parser.add_argument('--indices',required=False, type=lambda s: list(map(int,s.split('-'))), nargs='+', default=None)
     parser.add_argument('--ids',required=False, type=int, nargs='+', default=None)
     parser.add_argument('--train', required=False, action='store_const', const='train', default='val', help='Check for this image in the train set instead of validation')
     args = parser.parse_args()
@@ -36,11 +41,15 @@ def plotmany(fnames, horizontallabels, verticallabels):
     fig = figure(0)
     nr = len(fnames) + 1
     nc = max(map(len, fnames)) + 1
+    # horizontallabels = model names
+    # verticallabels = image names
     for r in range(len(fnames)):
         for c in range(len(fnames[r])):
+            model_name, image_name = (horizontallabels[c], verticallabels[r])
             subplot(nr, nc, (r+1) * nc + (c+1) + 1)
             axis('off')
             im = Image.open(fnames[r][c])
+            im.save('../slides/%s_%s.jpg' % (str(image_name), model_name))
             imshow(im)
     for i in range(len(horizontallabels)):
         subplot(nr, nc, i+2)
@@ -55,18 +64,23 @@ def plotmany(fnames, horizontallabels, verticallabels):
 def get_ids(args):
     ids_to_show = set()
     allhr = os.listdir(os.path.join(cocodir, args.train, 'hr'))
+    allhrids = set([int(os.path.splitext(q)[0]) for q in allhr])
+    poss = allhrids
+    for m in args.models:
+        poss.intersection_update(set([int(p.split('_')[0]) for p in os.listdir(model_to_dir(m))]))
     if args.indices is not None:
         for idrange in args.indices:
             assert len(idrange) > 0, 'The provided range %s is invalid' % str(idrange)
-            ids_to_show.update(set(range(idrange[0], idrange[-1])))
+            ids_to_show.update(set(allhrids[idrange[0]: idrange[-1]]))
+    allhrids = sorted(poss)
     if args.ids is not None:
         ids_to_show.update(set(args.ids))
     if args.random is not None:
-        random.shuffle(allhr)
+        random.shuffle(allhrids)
         num_added = 0
-        for drawn in allhr:
+        for drawn in allhrids:
             if drawn not in ids_to_show:
-                ids_to_show.add(int(os.path.splitext(drawn)[0]))
+                ids_to_show.add(drawn)
                 num_added += 1
                 if num_added >= args.random:
                     break

@@ -29,4 +29,4 @@ python main.py "--data_train" "Coco" "--data_test" "Coco" "--use_classification"
                 "convavg"
 
 # python main.python --data_train Coco --data_test Coco --use-classification --pre_train ../experiment/convavg/model/model_best.pt --data_range all --scale 4 --save_models --test_every 100 --batch_size 256 --epochs 30 --save convavgperc --loss 0.9*L1+0.1*VGG --n_GPUs 4
-python main.py --data_train Coco --data_test Coco --use-classification --pre_train ../experiment/convavgperc/model/model_best.pt --data_range 1-10000/1-1000 --scale 4 --save_models --test_every 100 --batch_size 256 --epochs 30 --save convavgperc --loss 0.9*L1+0.1*VGG --n_GPUs 4
+python main.py --data_train Coco --data_test Coco --use_classification --pre_train ../experiment/convavgperc/model/model_best.pt --data_range 1-20,1000/all --scale 4 --save_models --test_every 300 --batch_size 128 --epochs 15 --save perfectembedding --n_GPUs 4 --randomize_category_picks --use_optimal_embedding

@@ -19,7 +19,7 @@ class Trainer():
         device = torch.device('cpu' if args.cpu else 'cuda')
         self.embedder = self.embedder.to(device)
         if not args.cpu and args.n_GPUs > 1:
-            self.embedder = nn.DataParallel(
+            self.embedder = torch.nn.DataParallel(
                 self.embedder, range(args.n_GPUs)
             )
 
@@ -60,8 +60,10 @@ class Trainer():
             lr, hr = self.prepare(lr, hr)
             if self.args.use_optimal_embedding:
                 average_classification = self.embedder(hr)
+            if self.args.use_lr_embedding:
+                average_classification = self.embedder(lr)
             else:
-                average_classification = self.prepare(average_classification)
+                (average_classification,) = self.prepare(average_classification)
             timer_data.hold()
             timer_model.tic()
 
@@ -113,7 +115,7 @@ class Trainer():
                     if self.args.use_optimal_embedding:
                         average_classification = self.embedder(hr)
                     else:
-                        average_classification = self.prepare(average_classification)
+                        (average_classification,) = self.prepare(average_classification)
                     #if self.args.use_classification:
                     sr = self.model(lr, idx_scale, average_classification)
                     #else:

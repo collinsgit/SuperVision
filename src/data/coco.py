@@ -26,12 +26,20 @@ class Coco(srdata.SRData):
         self._populate_avg_embedding()
 
     def _populate_avg_embedding(self):
+        embedding_size = None
         for each_category in self.classes.get_all_categories():
             avgp = os.path.join(self.dir_avg_embedding, '%02d.pt' % each_category)
-            if self.args.use_optimal_embedding:
-                self.avg_by_class[each_category] = -1
+            if self.args.erase_classification:
+                if embedding_size is None:
+                    embedding_size = torch.load(avgp).shape
+                    # Convert to zeros
+                self.avg_by_class[each_category] = np.zeros(embedding_size).astype(np.float32)
             else:
-                self.avg_by_class[each_category] = torch.load(avgp)
+                if self.args.use_optimal_embedding:
+                    self.avg_by_class[each_category] = -1
+                else:
+                    self.avg_by_class[each_category] = torch.load(avgp)
+
 
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, 'coco', 'train' if self.train else 'val')
