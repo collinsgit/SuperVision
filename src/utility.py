@@ -85,7 +85,6 @@ class checkpoint():
                 f.write('{}: {}\n'.format(arg, getattr(args, arg)))
             f.write('\n')
 
-        # Julie changed this
         self.n_processes = 1
 
     def get_path(self, *subdir):

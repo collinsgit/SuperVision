@@ -67,7 +67,6 @@ class ImageNetDownloader(object):
                 else:
                     print("Expected",u,"Got",resp.url)
             except Exception as err:
-                #print(err)
                 pass
             if valid_image:
                 files_written.append(fp)

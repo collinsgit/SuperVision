@@ -29,7 +29,6 @@ parser.add_argument('--data_test', type=str, default='Coco',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='0-20,1000/21-40,100',
                     help='train/test data range')
-# CHANGED: Julie changed this, blame Eric if this goes wrong
 parser.add_argument('--ext', type=str, default='img',
                     help='dataset file extension')
 parser.add_argument('--scale', type=str, default='4',

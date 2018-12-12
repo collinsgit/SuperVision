@@ -48,7 +48,6 @@ class Trainer():
         self.model.train()
 
         timer_data, timer_model = utility.timer(), utility.timer()
-        # Julie: Added extra _
         print("Loader train length: ",len(self.loader_train))
 
         #for example in self.loader_train:
@@ -109,17 +108,13 @@ class Trainer():
         for idx_data, d in enumerate(self.loader_test):
             for idx_scale, scale in enumerate(self.scale):
                 d.dataset.set_scale(idx_scale)
-                # Julie: Added extra _
                 for lr, hr, filename, average_classification, _ in tqdm(d, ncols=80):
                     lr, hr = self.prepare(lr, hr)
                     if self.args.use_optimal_embedding:
                         average_classification = self.embedder(hr)
                     else:
                         (average_classification,) = self.prepare(average_classification)
-                    #if self.args.use_classification:
                     sr = self.model(lr, idx_scale, average_classification)
-                    #else:
-                    #    sr = self.model(lr, idx_scale)
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]
