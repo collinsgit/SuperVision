@@ -3,5 +3,5 @@
 **/model/*.pt
 **/optimizer.pt
 !.gitignore
-!**/model/model_best.pt
+# !**/model/model_best.pt
 *.txt
